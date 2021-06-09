@@ -1,0 +1,48 @@
+FROM jenkins/jenkins:lts-jdk11
+USER root
+RUN apt-get update && apt-get install -y apt-transport-https \
+    ca-certificates curl gnupg2 \
+    software-properties-common
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN apt-key fingerprint 0EBFCD88
+RUN add-apt-repository \
+    "deb [arch=amd64] https://download.docker.com/linux/debian \
+    $(lsb_release -cs) stable"
+RUN apt-get update && apt-get install -y docker-ce-cli
+USER jenkins
+RUN jenkins-plugin-cli --plugins "blueocean:1.24.7 docker-workflow:1.26 git:4.7.2 pipeline-as-yaml:0.16-rc locale:1.4 ssh-slaves:1.31.7 ssh-credentials:1.19"
+
+USER root
+
+RUN apt-get update && apt-get install -y gawk
+
+# create shared group between root and jenkins users 
+# giving root folder ownership to that group
+ARG SHARED_GROUP=rootjenkinsshared
+RUN groupadd -g 1001 ${SHARED_GROUP} && \
+    usermod -aG ${SHARED_GROUP} jenkins && \
+    usermod -aG ${SHARED_GROUP} root && \
+    chown -hR root:${SHARED_GROUP} /root && \
+    chmod 770 /root
+
+RUN mkdir -p /home/jenkins_shared_secrets/pub && \
+    ssh-keygen -f /home/jenkins_shared_secrets/jenkins_eva_agent1_key -N "" && \
+    chown -h root:${SHARED_GROUP} /home/jenkins_shared_secrets/jenkins_eva_agent1_key && \
+    chmod 770 /home/jenkins_shared_secrets/jenkins_eva_agent1_key && \
+    mv /home/jenkins_shared_secrets/jenkins_eva_agent1_key.pub /home/jenkins_shared_secrets/pub/jenkins_eva_agent1_key.pub && \
+    mkdir /home/eva_scripts
+
+# copy jenkins groovy scripts
+COPY scripts/ /home/eva_scripts
+COPY setup-initial-configs-jenkins.sh /home/eva_scripts/setup-initial-configs-jenkins.sh
+
+RUN chown -hR jenkins:jenkins /home/eva_scripts && \
+    chmod -R 755 /home/eva_scripts
+
+# copy entrypoint script
+COPY jenkins-entrypoint.sh /usr/local/bin/jenkins-entrypoint.sh
+RUN chmod 755 /usr/local/bin/jenkins-entrypoint.sh
+
+USER jenkins
+
+ENTRYPOINT ["/sbin/tini", "--", "jenkins-entrypoint.sh"]

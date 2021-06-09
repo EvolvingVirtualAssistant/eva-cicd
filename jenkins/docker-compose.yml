@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  jenkins:
+    build: .
+    networks:
+      - 'jenkins'
+    ports:
+      - 8929:8080
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+      - JENKINS_USERNAME=admin
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client
+      - jenkins-shared-secrets:/home/jenkins_shared_secrets/pub
+    secrets:
+      - jenkins_admin_password
+
+  eva-jenkins-agent-1:
+    build:
+      context: .
+      dockerfile: jenkins-agent.Dockerfile
+    networks:
+      - 'jenkins'
+    ports:
+      - 22:22
+    volumes:
+      - type: volume
+        source: jenkins-shared-secrets
+        target: /home/jenkins_shared_secrets
+        read_only: true
+        volume:
+          nocopy: true
+    depends_on:
+      - jenkins
+
+secrets:
+  jenkins_admin_password:
+    file: .secrets/jenkins_admin_password.txt
+
+volumes:
+  jenkins-data:
+  jenkins-docker-certs:
+  jenkins-shared-secrets:
+
+networks:
+  jenkins:
