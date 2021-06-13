@@ -1,0 +1,1 @@
+from .jenkins_http_adapter import JenkinsHttpAdapter
