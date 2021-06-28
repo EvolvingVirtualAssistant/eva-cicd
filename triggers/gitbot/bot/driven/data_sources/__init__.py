@@ -1,1 +1,2 @@
 from .jenkins_http_adapter import JenkinsHttpAdapter
+from .params_env_adapter import ParamsEnvAdapter

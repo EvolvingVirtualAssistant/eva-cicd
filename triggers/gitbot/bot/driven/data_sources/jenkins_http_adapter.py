@@ -1,4 +1,4 @@
-from driven.repositories import JenkinsRepository
+from bot.driven.repositories import JenkinsRepository
 
 
 class JenkinsHttpAdapter(JenkinsRepository):
