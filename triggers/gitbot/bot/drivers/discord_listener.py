@@ -5,6 +5,10 @@ from discord.ext import commands
 import asyncio
 import re
 import threading
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class DiscordListener():
@@ -20,7 +24,7 @@ class DiscordListener():
 
     @_bot.event
     async def on_ready():
-        print('Listening to discord')
+        logging.info('Listening to discord')
 
     def start_listener(self, blocking: bool):
         with DiscordListener._bot_running_lock:
@@ -32,7 +36,7 @@ class DiscordListener():
                 try:
                     DiscordListener._bot.run(self._token)
                 except Exception as ex:
-                    print(ex)  # Replace with proper logging
+                    logger.exception("Error while starting listener")
                 finally:
                     DiscordListener._bot_running = False
 
@@ -49,14 +53,14 @@ class DiscordListener():
                 async def _stop_bot():
                     try:
                         await DiscordListener._bot.close()
-                    except Exception:
-                        pass  # Ignore exception while closing connection
+                    except Exception as ex:
+                        logger.exception("Error while stopping listener")
 
                 try:
                     asyncio.run(_stop_bot())
-                except Exception as e:
-                    print(e)
-                    pass  # Ignore exception while closing connection
+                except Exception as ex:
+                    logger.exception(
+                        "Error while waiting for listener to stop")
 
                 self._listener.join()
                 DiscordListener._bot_running = False
@@ -74,7 +78,7 @@ class _EventListenerCog(commands.Cog):
         if message.author == self._bot.user:
             return False
 
-        if message.author.bot != True or message.author.name != "GitHub":
+        if message.author.bot == False or message.author.name != "GitHub":
             return False
 
         # is github author allowed
@@ -95,11 +99,13 @@ class _EventListenerCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: Message):
         if not self._validMessageAuthor(message):
+            logger.info("Invalid message author")
             return
 
         prUrl = self._getGithubPrUrl(message)
 
         if prUrl is None:
+            logger.info("Unable to extract pr url from message")
             return
 
         self._jenkinsService.send_message_to_jenkins(prUrl)
