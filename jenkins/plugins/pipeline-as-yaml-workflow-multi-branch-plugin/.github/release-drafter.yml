@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: pipeline-as-yaml-workflow-multi-branch-$NEXT_MINOR_VERSION
