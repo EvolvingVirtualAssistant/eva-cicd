@@ -11,12 +11,19 @@ services:
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_TLS_VERIFY=1
       - JENKINS_USERNAME=admin
+      - JENKINS_EVA_SCRIPTS=/home/eva_scripts
+      - CASC_JENKINS_CONFIG=/home/eva_scripts/casc_configs/jenkins.yaml
+      - JENKINS_EVA_PLUGINS=/home/eva_plugins
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client
       - jenkins-shared-secrets:/home/jenkins_shared_secrets/pub
     secrets:
       - jenkins_admin_password
+      - github_app_key
+      - github_app_id
+      - jenkins_eva_agent1_priv_key
+      - jenkins_eva_agent1_key_password
 
   eva-jenkins-agent-1:
     build:
@@ -33,12 +40,25 @@ services:
         read_only: true
         volume:
           nocopy: true
+    secrets:
+      - jenkins_eva_agent1_pub_key       
     depends_on:
       - jenkins
 
 secrets:
   jenkins_admin_password:
-    file: .secrets/jenkins_admin_password.txt
+    file: '.secrets/jenkins_admin_password.txt'
+  github_app_key:
+    file: '.secrets/converted-github-app-jenkins-eva.pem'
+  github_app_id:
+    file: '.secrets/github-app-id-jenkins-eva.txt'
+  jenkins_eva_agent1_priv_key:
+    file: '.secrets/jenkins_eva_agent1_key'
+  jenkins_eva_agent1_pub_key:
+    file: '.secrets/jenkins_eva_agent1_key.pub'
+  jenkins_eva_agent1_key_password:
+    file: '.secrets/jenkins_eva_agent1_key_password'
+
 
 volumes:
   jenkins-data:

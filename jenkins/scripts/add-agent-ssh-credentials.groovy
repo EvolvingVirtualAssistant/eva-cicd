@@ -4,21 +4,20 @@ import com.cloudbees.plugins.credentials.domains.*
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.*
 import java.nio.file.Files
 
-def existsCredentialWithId { 
-    credentialId ->
-    
+def existsCredentialWithId(credentialId) { 
     def creds = com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(
         BasicSSHUserPrivateKey.class,
         jenkins.model.Jenkins.instance
     )
 
     def cred = creds.findResult { it.id == credentialId ? it : null }
+    println cred
     return cred != null
 }
 
 def credentialId = "jenkins"
 if(existsCredentialWithId(credentialId)) {
-    return String.format("SSH credential with id %s already exists.", )
+    return String.format("SSH credential with id %s already exists.", credentialId)
 }
 
 def keyFile = new java.io.File('/home/jenkins_shared_secrets/jenkins_eva_agent1_key')

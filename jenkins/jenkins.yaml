@@ -1,0 +1,65 @@
+jenkins:
+  systemMessage: "Jenkins partially configured automatically by Jenkins Configuration as Code plugin\n\n"
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - gitHubApp:
+              appID: '${github_app_id}'
+              description: 'GitHub app - Jenkins EVA'
+              id: 'github-app'
+              privateKey: '${github_app_key}'
+              owner: 'EvolvingVirtualAssistant'
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: jenkins_ssh_agent1
+              username: jenkins
+              passphrase: ${jenkins_eva_agent1_key_password}
+              description: 'SSH private key file to establish connection with agent1'
+              privateKeySource:
+                directEntry:
+                  privateKey: ${jenkins_eva_agent1_priv_key}
+# based on https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/jobs
+jobs:
+  - script: |
+      organizationFolder('GitHub EVA Organization Folder') {
+        description("GitHub organization folder configured with JCasC")
+        displayName('EVA - GitHub')
+        // "Projects"
+        organizations {
+          github {
+            apiUri("https://api.github.com")
+            repoOwner("EvolvingVirtualAssistant")
+            credentialsId("github-app")
+            // "Traits" ("Behaviours" in the GUI) that are "declarative-compatible"
+            traits {
+              submoduleOptionTrait {
+                extension {
+                  disableSubmodules(false)
+                  recursiveSubmodules(true)
+                  trackingSubmodules(false)
+                  reference(null)
+                  timeout(null)
+                  parentCredentials(true)
+                }
+              }
+              gitHubBranchDiscovery {
+                strategyId(2)
+              }
+              gitHubPullRequestDiscovery {
+                strategyId(1)
+              }
+              localBranchTrait {
+
+              }
+            }
+          }
+        }
+
+        projectFactories {
+          pipelineAsYamlWorkflowMultiBranchProjectFactory {
+            yamlJenkinsFile 'jenkins/Jenkinsfile.yml'
+          }
+        }
+
+      }
