@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# set github app env variables
-#export GITHUB_APP_KEY=$(cat /run/secrets/github_app_key)
-#export GITHUB_APP_ID=$(cat /run/secrets/github_app_id)
-
 username=${JENKINS_USERNAME}
 old_password=$(cat /var/jenkins_home/secrets/initialAdminPassword)
 new_password=$(cat /run/secrets/jenkins_admin_password)
@@ -12,6 +8,10 @@ http_status=''
 response=''
 cookie_session_id=''
 crumb=''
+
+function log() {
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")][setup-script] $1"
+}
 
 function GET_request() {
     response="$(curl -s -k -i -X GET --header 'Content-type: application/json' --user "$1":"$2" "$3")"
@@ -50,25 +50,25 @@ function get_jenkins_api_token() {
 
 function execute_script_in_jenkins() {
     response="$(curl -s --user "$1:$2" --data-urlencode "script=$(<"$3")" http://localhost:8080/scriptText)"
-    echo "$response"
+    log "$response"
 }
 
 function download_jenkins_cli() {
     response="$(curl -s http://localhost:8080/jnlpJars/jenkins-cli.jar --output "${JENKINS_EVA_PLUGINS}"/jenkins-cli.jar)"
-    echo "$response"
+    log "$response"
 }
 
 function check_if_jenkins_user_already_has_password_set() {
     local isUnauthorized
     isUnauthorized="$(echo "$http_status" | grep 401)"
     if [ -n "$isUnauthorized" ]; then
-        echo "Wrong password. Authenticating with new password."
+        log "Wrong password. Authenticating with new password."
         GET_jenkins_crumb "$username" "$new_password"
         get_http_status "$response"
         local isAuthorized
         isAuthorized="$(echo "$http_status" | grep 200)"
         if [ -n "$isAuthorized" ]; then
-            echo "Jenkins user already has the right credentials"
+            log "Jenkins user already has the right credentials"
             old_password=$new_password
         fi
     fi
@@ -77,13 +77,13 @@ function check_if_jenkins_user_already_has_password_set() {
 function wait_for_jenkins_start() {
     local nRetries=0
     local nMaxRetries=50
-    echo "status: ${http_status} nRetries: ${nRetries} nMaxRetries: ${nMaxRetries} "
+    log "status: ${http_status} nRetries: ${nRetries} nMaxRetries: ${nMaxRetries} "
     # checks to see if jenkins is up and ready to use
     while [ "$http_status" != 200 ] && [ $nRetries -lt $nMaxRetries ]; do
         sleep 10
         GET_jenkins_crumb "$username" "$old_password"
         get_http_status "$response"
-        echo "Jenkins responded with status: $http_status"
+        log "Jenkins responded with status: $http_status"
         nRetries=$((nRetries + 1))
 
         check_if_jenkins_user_already_has_password_set
@@ -93,25 +93,25 @@ function wait_for_jenkins_start() {
 function create_new_api_token() {
     get_cookie_session_id "$response"
     if [ -z "$cookie_session_id" ] || [ "$cookie_session_id" == " " ]; then
-        echo "Could not extract cookie session id from $response. Terminating."
+        log "Could not extract cookie session id from $response. Terminating."
         exit 1
     fi
 
     get_jenkins_crumb "$response"
     if [ -z "$crumb" ] || [ "$crumb" == " " ]; then
-        echo "Could not extract crumb from $response. Terminating."
+        log "Could not extract crumb from $response. Terminating."
         exit 1
     fi
 
     POST_create_jenkins_api_token "$username" "$new_password" "$crumb" "$cookie_session_id"
     get_jenkins_api_token "$response"
     if [ -z "$api_token" ] || [ "$api_token" == " " ]; then
-        echo "Could not extract api token from $response. Terminating."
+        log "Could not extract api token from $response. Terminating."
         exit 1
     fi
 }
 
-echo "Starting initial jenkins config setup..."
+log "Starting initial jenkins config setup..."
 
 wait_for_jenkins_start
 
@@ -121,7 +121,7 @@ create_new_api_token
 download_jenkins_cli
 java -jar "${JENKINS_EVA_PLUGINS}"/jenkins-cli.jar -s http://localhost:8080 -auth "$username":"$api_token" install-plugin "file:///${JENKINS_EVA_PLUGINS}/pipeline-as-yaml-workflow-multi-branch-plugin.hpi" -restart
 
-echo "Sleeping for 20 seconds waiting restart..."
+log "Sleeping for 20 seconds waiting restart..."
 sleep 20
 
 http_status=''
@@ -133,25 +133,25 @@ wait_for_jenkins_start
 
 create_new_api_token
 
-echo "Restarting jenkins config setup..."
+log "Restarting jenkins config setup..."
 
 # Change user password if user still uses the default generated password
 if [ "$old_password" != "$new_password" ]; then
-    echo "Trying to change jenkins user password..."
+    log "Trying to change jenkins user password..."
     execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/change-password.groovy"
 else
-    echo "Skipping password change step"
+    log "Skipping password change step"
 fi
 
 # Set locale options
-echo "Trying to set locale options..."
+log "Trying to set locale options..."
 execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/set-locale-options.groovy"
 
 # Add jenkins agent ssh credential - no longer needed since ssh key is already defined in jenkins.yaml configuration
 #execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/add-agent-ssh-credentials.groovy"
 
 # Add jenkins agent
-echo "Trying to add jenkins agent..."
+log "Trying to add jenkins agent..."
 execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/add-permanent-agent.groovy"
 
-echo "Jenkins successfully configured"
+log "Jenkins successfully configured"
