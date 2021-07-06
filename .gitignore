@@ -1,0 +1,5 @@
+.env
+.secrets/
+jenkins/plugins/*/target
+.idea
+*.iml

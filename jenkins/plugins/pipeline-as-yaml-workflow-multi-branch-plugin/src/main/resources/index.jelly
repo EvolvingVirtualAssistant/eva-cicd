@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  This plugin uses branch-api-plugin and pipeline-as-yaml to provides a PipelineAsYamlWorkflowMultiBranchProjectFactory.
+</div>
