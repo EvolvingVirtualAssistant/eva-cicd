@@ -17,7 +17,6 @@ services:
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client
-      - jenkins-shared-secrets:/home/jenkins_shared_secrets/pub
     secrets:
       - jenkins_admin_password
       - github_app_key
@@ -33,13 +32,6 @@ services:
       - 'jenkins'
     ports:
       - 22:22
-    volumes:
-      - type: volume
-        source: jenkins-shared-secrets
-        target: /home/jenkins_shared_secrets
-        read_only: true
-        volume:
-          nocopy: true
     secrets:
       - jenkins_eva_agent1_pub_key       
     depends_on:
@@ -63,7 +55,6 @@ secrets:
 volumes:
   jenkins-data:
   jenkins-docker-certs:
-  jenkins-shared-secrets:
 
 networks:
   jenkins:

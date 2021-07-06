@@ -77,7 +77,6 @@ function check_if_jenkins_user_already_has_password_set() {
 function wait_for_jenkins_start() {
     local nRetries=0
     local nMaxRetries=50
-    log "status: ${http_status} nRetries: ${nRetries} nMaxRetries: ${nMaxRetries} "
     # checks to see if jenkins is up and ready to use
     while [ "$http_status" != 200 ] && [ $nRetries -lt $nMaxRetries ]; do
         sleep 10

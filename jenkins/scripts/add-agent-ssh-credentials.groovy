@@ -20,7 +20,7 @@ if(existsCredentialWithId(credentialId)) {
     return String.format("SSH credential with id %s already exists.", credentialId)
 }
 
-def keyFile = new java.io.File('/home/jenkins_shared_secrets/jenkins_eva_agent1_key')
+def keyFile = new java.io.File('/run/secrets/jenkins_eva_agent1_pub_key')
 def key = Files.readString(keyFile.toPath())
 
 def source = new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource(key)

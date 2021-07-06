@@ -42,12 +42,7 @@ RUN groupadd -g 1001 ${SHARED_GROUP} && \
     chmod 770 /root
 
 ARG JENKINS_EVA_SCRIPTS=/home/eva_scripts
-RUN mkdir -p /home/jenkins_shared_secrets/pub && \
-    ssh-keygen -f /home/jenkins_shared_secrets/jenkins_eva_agent1_key -N "" && \
-    chown -h root:${SHARED_GROUP} /home/jenkins_shared_secrets/jenkins_eva_agent1_key && \
-    chmod 770 /home/jenkins_shared_secrets/jenkins_eva_agent1_key && \
-    mv /home/jenkins_shared_secrets/jenkins_eva_agent1_key.pub /home/jenkins_shared_secrets/pub/jenkins_eva_agent1_key.pub && \
-    mkdir ${JENKINS_EVA_SCRIPTS} && \
+RUN mkdir ${JENKINS_EVA_SCRIPTS} && \
     mkdir ${JENKINS_EVA_SCRIPTS}/casc_configs
 
 # copy jenkins.yaml file used by configuration as code plugin
