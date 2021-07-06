@@ -1,5 +1,4 @@
-## Requirements to have jenkins running
-
+## Requirements to run jenkins
 ### Secrets:
 - Create a github organization and app. Guides: https://www.youtube.com/watch?v=LbXKUKQ24T8 ; https://docs.cloudbees.com/docs/cloudbees-ci/latest/cloud-admin-guide/github-app-auth
 - **github-app-id-jenkins-eva.txt** file that contains the github app id
@@ -15,3 +14,21 @@
   ssh-keygen -f .secrets/jenkins_eva_agent1_key -N password_for_the_key
   ``` 
 All of these secrets will then have to be injected into the docker containers. There are multiple ways of achieving that, for now we are using the *docker-compose.yml* file to have all of these secrets defined there.   
+
+## Running jenkins
+
+### Build
+```sh
+cd jenkins
+docker-compose build
+``` 
+### Start
+```sh
+cd jenkins
+docker-compose up -d # Run containers in the background
+```   
+### Stop
+```sh
+cd jenkins
+docker-compose stop
+```
