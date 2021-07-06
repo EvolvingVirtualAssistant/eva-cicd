@@ -105,11 +105,6 @@ def test_only_one_listener_at_a_time(discord_listener: DiscordListener, discord_
     assert DiscordListener._bot_running == False
 
 
-def test_event_on_ready(discord_listener: DiscordListener):
-    # Don't think we need to test this event for now
-    pass
-
-
 """Testing listener specific message handling"""
 
 

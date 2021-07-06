@@ -35,7 +35,7 @@ function install_python() {
             sudo apt-get install python3 python3-pip
         fi
     else
-        ## Upgrades deno
+        ## Upgrades python
         echo "Trying to upgrade python"
         if [ $os == "WINDOWS" ]; then
             choco upgrade python3
@@ -53,6 +53,10 @@ function install_python() {
     fi
 }
 
+function install_requirements() {
+    pip install -r dev-requirements
+}
+
 function print_notes() {
     if [ $os == "WINDOWS" ]; then
         echo "On vscode if libraries are not recognized go to File > Preferences > Settings > Search for interpreter > Select python > Set 'py' as the default one, instead of 'python'."
@@ -64,6 +68,8 @@ function print_notes() {
 get_current_os
 
 install_python
+
+install_requirements
 
 print_notes
 

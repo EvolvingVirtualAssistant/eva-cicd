@@ -1,0 +1,1 @@
+from .jenkins_exceptions import JenkinsNoConnectionError
