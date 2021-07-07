@@ -9,8 +9,27 @@ response=''
 cookie_session_id=''
 crumb=''
 
+casc_config_bkp_file=$(echo "${CASC_JENKINS_CONFIG}".bkp)
+
 function log() {
     echo "[$(date "+%Y-%m-%d %H:%M:%S")][setup-script] $1"
+}
+
+function empty_casc_config_file() {
+    if [ -f "$casc_config_bkp_file" ]; then
+        log "No need to change ${CASC_JENKINS_CONFIG} file name so it doesn't get used in jenkins startup"
+    else
+        log "Renaming ${CASC_JENKINS_CONFIG} file so it doesn't get used in jenkins startup"
+        mv "${CASC_JENKINS_CONFIG}" "${casc_config_bkp_file}"
+        echo "" >>"${CASC_JENKINS_CONFIG}"
+    fi
+}
+
+function recover_casc_config_file() {
+    if [ -f "$casc_config_bkp_file" ]; then
+        log "Copying ${CASC_JENKINS_CONFIG} file so it starts gettign used in jenkins startup"
+        cp "${casc_config_bkp_file}" "${CASC_JENKINS_CONFIG}"
+    fi
 }
 
 function GET_request() {
@@ -112,6 +131,9 @@ function create_new_api_token() {
 
 log "Starting initial jenkins config setup..."
 
+# workaround to deal with the need of uploading the custom plugin first
+empty_casc_config_file
+
 wait_for_jenkins_start
 
 create_new_api_token
@@ -119,6 +141,9 @@ create_new_api_token
 # Uploads plugins
 download_jenkins_cli
 java -jar "${JENKINS_EVA_PLUGINS}"/jenkins-cli.jar -s http://localhost:8080 -auth "$username":"$api_token" install-plugin "file:///${JENKINS_EVA_PLUGINS}/pipeline-as-yaml-workflow-multi-branch-plugin.hpi" -restart
+
+# workaround to deal with the need of uploading the custom plugin first
+recover_casc_config_file
 
 log "Sleeping for 20 seconds waiting restart..."
 sleep 20
