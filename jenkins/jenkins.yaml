@@ -1,5 +1,12 @@
 jenkins:
   systemMessage: "Jenkins partially configured automatically by Jenkins Configuration as Code plugin\n\n"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: ${JENKINS_USERNAME}
+          password: ${jenkins_admin_password}
+  authorizationStrategy: loggedInUsersCanDoAnything
 credentials:
   system:
     domainCredentials:
