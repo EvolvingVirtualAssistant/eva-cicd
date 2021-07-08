@@ -97,13 +97,18 @@ Jenkins.instance.addNode(agent)
 
 // Update master agent to have 0 executors
 def masterAgent = Jenkins.instance.getNode("master")
-String.format("Jenkins.instance.getNodes %", Jenkins.instance.getNodes())
+if(masterAgent == null) {
+    masterAgent = Jenkins.instance.getNode("")
+}
+if(masterAgent == null) {
+    masterAgent = Jenkins.instance
+}
 masterAgent.numExecutors = 0
 Jenkins.instance.updateNode(masterAgent)
 
 checksAgentAndLaunchIfNeeded(agent)
 
-return String.format("% node with has been created successfully.", agentName)
+return String.format("%s node with has been created successfully.", agentName)
 
 
 

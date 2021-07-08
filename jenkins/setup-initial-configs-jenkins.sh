@@ -89,6 +89,9 @@ function check_if_jenkins_user_already_has_password_set() {
         if [ -n "$isAuthorized" ]; then
             log "Jenkins user already has the right credentials"
             old_password=$new_password
+        elif [ -z "$old_password" ]; then
+            log "Could not load old_password properly, trying once again"
+            old_password=$(cat /var/jenkins_home/secrets/initialAdminPassword)
         fi
     fi
 }
@@ -121,7 +124,7 @@ function create_new_api_token() {
         exit 1
     fi
 
-    POST_create_jenkins_api_token "$username" "$new_password" "$crumb" "$cookie_session_id"
+    POST_create_jenkins_api_token "$username" "$old_password" "$crumb" "$cookie_session_id"
     get_jenkins_api_token "$response"
     if [ -z "$api_token" ] || [ "$api_token" == " " ]; then
         log "Could not extract api token from $response. Terminating."
@@ -159,20 +162,9 @@ create_new_api_token
 
 log "Restarting jenkins config setup..."
 
-# Change user password if user still uses the default generated password
-if [ "$old_password" != "$new_password" ]; then
-    log "Trying to change jenkins user password..."
-    execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/change-password.groovy"
-else
-    log "Skipping password change step"
-fi
-
 # Set locale options
 log "Trying to set locale options..."
 execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/set-locale-options.groovy"
-
-# Add jenkins agent ssh credential - no longer needed since ssh key is already defined in jenkins.yaml configuration
-#execute_script_in_jenkins "$username" "$api_token" "${JENKINS_EVA_SCRIPTS}/add-agent-ssh-credentials.groovy"
 
 # Add jenkins agent
 log "Trying to add jenkins agent..."
