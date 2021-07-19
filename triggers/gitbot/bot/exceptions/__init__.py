@@ -1,1 +1,1 @@
-from .jenkins_exceptions import JenkinsNoConnectionError
+from .jenkins_exceptions import JenkinsNoConnectionError, JenkinsStartingError, JenkinsStoppingError

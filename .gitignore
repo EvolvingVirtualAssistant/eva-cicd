@@ -4,8 +4,7 @@ jenkins/plugins/*/target
 .idea
 *.iml
 __pycache__/
-.pytest_cache
+.pytest_cache/
 .vscode
-.env
 **/logs/*
 !.gitkeep

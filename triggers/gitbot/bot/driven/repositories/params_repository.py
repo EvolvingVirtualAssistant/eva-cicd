@@ -20,7 +20,9 @@ class ParamsRepository(metaclass=ABCMeta):
                 hasattr(subclass, 'get_jenkins_connection_timeout') and
                 callable(subclass.get_jenkins_connection_timeout) and
                 hasattr(subclass, 'get_jenkins_ready_timeout') and
-                callable(subclass.get_jenkins_ready_timeout) or
+                callable(subclass.get_jenkins_ready_timeout) and
+                hasattr(subclass, 'get_jenkins_all_nodes_online_timeout') and
+                callable(subclass.get_jenkins_all_nodes_online_timeout) or
                 NotImplemented)
 
     @abstractmethod
@@ -53,4 +55,8 @@ class ParamsRepository(metaclass=ABCMeta):
 
     @abstractmethod
     def get_jenkins_ready_timeout():
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_jenkins_all_nodes_online_timeout():
         raise NotImplementedError

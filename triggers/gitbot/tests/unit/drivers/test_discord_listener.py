@@ -10,7 +10,7 @@ import time
 import threading
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__).parent
 
 """Testing listener starting and stoping functionalities"""
 
@@ -154,15 +154,15 @@ def _change_embeds_author_name(sample_message, author_name):
 def test_event_on_message_invalid_author(discord_event_listener_cog: _EventListenerCog, sample_message, change_msg, get_bot_user):
     msg = change_msg(sample_message)
     discord_event_listener_cog._bot.user = get_bot_user(sample_message)
-    discord_event_listener_cog._paramsRepository.get_github_allowed_authors = MagicMock(
+    discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discordService.send_message_to_discord = MagicMock()
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
+    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins.assert_not_called()
-    discord_event_listener_cog._discordService.send_message_to_discord.assert_not_called()
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_not_called()
+    discord_event_listener_cog._discord_service.send_message_to_discord.assert_not_called()
 
 
 def _invalid_pr_url(samples_message, embeds):
@@ -184,31 +184,31 @@ def _change_embeds_url(samples_message, url):
 ])
 def test_event_on_message_invalid_pr_url(discord_event_listener_cog: _EventListenerCog, sample_message, change_msg):
     msg = change_msg(sample_message)
-    discord_event_listener_cog._paramsRepository.get_github_allowed_authors = MagicMock(
+    discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discordService.send_message_to_discord = MagicMock()
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
+    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins.assert_not_called()
-    discord_event_listener_cog._discordService.send_message_to_discord.assert_not_called()
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_not_called()
+    discord_event_listener_cog._discord_service.send_message_to_discord.assert_not_called()
 
 
 def test_event_on_message(discord_event_listener_cog: _EventListenerCog, sample_message):
-    async def mock_send_message_to_discord(channel, prUrl):
+    async def mock_send_message_to_discord(channel, pr_url):
         pass
 
-    discord_event_listener_cog._paramsRepository.get_github_allowed_authors = MagicMock(
+    discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discordService.send_message_to_discord = MagicMock(
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
+    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock(
         side_effect=mock_send_message_to_discord)
     url = re.match(r".*\/pull\/\d+", sample_message.embeds[0].url).group()
 
     _call_on_message(discord_event_listener_cog, sample_message)
 
-    discord_event_listener_cog._jenkinsService.send_message_to_jenkins.assert_called_with(
+    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_called_with(
         url)
-    discord_event_listener_cog._discordService.send_message_to_discord.assert_called_with(
+    discord_event_listener_cog._discord_service.send_message_to_discord.assert_called_with(
         sample_message.channel, url)

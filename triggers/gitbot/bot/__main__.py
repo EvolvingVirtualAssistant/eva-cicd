@@ -14,20 +14,20 @@ def setup_logging():
 
 def main():
     setup_logging()
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger()
     logger.info("Starting Bot")
 
-    paramsRepository = ParamsEnvAdapter()
-    jenkinsRepository = JenkinsHttpAdapter()
+    params_repository = ParamsEnvAdapter()
+    jenkins_repository = JenkinsHttpAdapter(params_repository)
 
-    discordToken = paramsRepository.get_discord_token()
+    discord_token = params_repository.get_discord_token()
 
-    discordService = DiscordService()
-    jenkinsService = JenkinsService(jenkinsRepository)
+    discord_service = DiscordService()
+    jenkins_service = JenkinsService(jenkins_repository)
 
-    discordListener = DiscordListener(discordToken, discordService,
-                                      jenkinsService, paramsRepository)
-    discordListener.start_listener(True)
+    discord_listener = DiscordListener(discord_token, discord_service,
+                                       jenkins_service, params_repository)
+    discord_listener.start_listener(True)
 
     logger.debug("Stopping Bot")
 

@@ -12,14 +12,8 @@ class JenkinsRepository(metaclass=ABCMeta):
                 hasattr(subclass, 'stop_jenkins') and
                 callable(subclass.stop_jenkins) and
                 hasattr(subclass, 'trigger_build') and
-                callable(subclass.trigger_build) and
-                hasattr(subclass, 'get_connection') and
-                callable(subclass.get_connection) or
+                callable(subclass.trigger_build) or
                 NotImplemented)
-
-    @abstractmethod
-    def get_connection():
-        raise NotImplementedError
 
     @abstractmethod
     def is_jenkins_running():
@@ -34,5 +28,5 @@ class JenkinsRepository(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def trigger_build(job_name, parameters):
+    def trigger_build(on_complete, job_name, parameters):
         raise NotImplementedError

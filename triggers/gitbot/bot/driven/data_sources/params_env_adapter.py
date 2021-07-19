@@ -17,10 +17,12 @@ class ParamsEnvAdapter(ParamsRepository):
         self.JENKINS_URL = os.getenv('JENKINS_URL')
         self.JENKINS_USERNAME = os.getenv('JENKINS_USERNAME')
         self.JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
-        self.JENKINS_CONNECTION_TIMEOUT = os.getenv(
-            'JENKINS_CONNECTION_TIMEOUT')
-        self.JENKINS_READY_TIMEOUT = os.getenv(
-            'JENKINS_READY_TIMEOUT')
+        self.JENKINS_CONNECTION_TIMEOUT = int(os.getenv(
+            'JENKINS_CONNECTION_TIMEOUT'))
+        self.JENKINS_READY_TIMEOUT = int(os.getenv(
+            'JENKINS_READY_TIMEOUT'))
+        self.JENKINS_ALL_NODES_ONLINE_TIMEOUT = int(os.getenv(
+            'JENKINS_ALL_NODES_ONLINE_TIMEOUT'))
 
     def get_discord_token(self):
         return self.DISCORD_TOKEN
@@ -41,7 +43,10 @@ class ParamsEnvAdapter(ParamsRepository):
         return self.JENKINS_PASSWORD
 
     def get_jenkins_connection_timeout(self):
-        raise self.JENKINS_CONNECTION_TIMEOUT
+        return self.JENKINS_CONNECTION_TIMEOUT
 
     def get_jenkins_ready_timeout(self):
-        raise self.JENKINS_READY_TIMEOUT
+        return self.JENKINS_READY_TIMEOUT
+
+    def get_jenkins_all_nodes_online_timeout(self):
+        return self.JENKINS_ALL_NODES_ONLINE_TIMEOUT

@@ -8,7 +8,7 @@ import threading
 import logging
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__).parent
 
 
 class DiscordListener():
@@ -16,15 +16,15 @@ class DiscordListener():
     _bot_running_lock = threading.Lock()
     _bot_running = False
 
-    def __init__(self, token, discordService: DiscordService, jenkinsService: JenkinsService, paramsRepository: ParamsRepository):
+    def __init__(self, token, discord_service: DiscordService, jenkins_service: JenkinsService, params_repository: ParamsRepository):
         self._token = token
         if DiscordListener._bot.get_cog("_EventListenerCog") is None:
-            DiscordListener._bot.add_cog(_EventListenerCog(DiscordListener._bot, discordService,
-                                                           jenkinsService, paramsRepository))
+            DiscordListener._bot.add_cog(_EventListenerCog(DiscordListener._bot, discord_service,
+                                                           jenkins_service, params_repository))
 
     @_bot.event
     async def on_ready():
-        logging.info('Listening to discord')
+        logger.info('Listening to discord')
 
     def start_listener(self, blocking: bool):
         with DiscordListener._bot_running_lock:
@@ -68,13 +68,13 @@ class DiscordListener():
 
 class _EventListenerCog(commands.Cog):
 
-    def __init__(self, bot: commands.Bot, discordService: DiscordService, jenkinsService: JenkinsService, paramsRepository: ParamsRepository):
+    def __init__(self, bot: commands.Bot, discord_service: DiscordService, jenkins_service: JenkinsService, params_repository: ParamsRepository):
         self._bot = bot
-        self._discordService = discordService
-        self._jenkinsService = jenkinsService
-        self._paramsRepository = paramsRepository
+        self._discord_service = discord_service
+        self._jenkins_service = jenkins_service
+        self._params_repository = params_repository
 
-    def _validMessageAuthor(self, message: Message):
+    def _valid_message_author(self, message: Message):
         if message.author == self._bot.user:
             return False
 
@@ -83,31 +83,40 @@ class _EventListenerCog(commands.Cog):
 
         # is github author allowed
         return (message.embeds is not None and len(message.embeds) > 0 and message.embeds[0].author is not None and
-                message.embeds[0].author.name in self._paramsRepository.get_github_allowed_authors())
+                message.embeds[0].author.name in self._params_repository.get_github_allowed_authors())
 
-    def _getGithubPrUrl(self, message: Message):
+    def _get_github_pr_url(self, message: Message):
         if (message.embeds is None or len(message.embeds) == 0 or message.embeds[0].url is None):
             return None
 
-        matchedUrl = re.match(r".*\/pull\/\d+", message.embeds[0].url)
+        matched_url = re.match(r".*\/pull\/\d+", message.embeds[0].url)
 
-        if matchedUrl is None:
+        if matched_url is None:
             return None
 
-        return matchedUrl.group()
+        return matched_url.group()
 
     @commands.Cog.listener()
     async def on_message(self, message: Message):
-        if not self._validMessageAuthor(message):
-            logger.info("Invalid message author")
+        if not self._valid_message_author(message):
+            logger.info("Invalid message author: {}".format(message.author))
             return
 
-        prUrl = self._getGithubPrUrl(message)
+        pr_url = self._get_github_pr_url(message)
 
-        if prUrl is None:
+        if pr_url is None:
             logger.info("Unable to extract pr url from message")
             return
 
-        self._jenkinsService.send_message_to_jenkins(prUrl)
-        await self._discordService.send_message_to_discord(message.channel, prUrl)
+        def _on_build_action(msg):
+            try:
+                self._bot.loop.create_task(
+                    self._discord_service.send_message_to_discord(message.channel, msg))  # PAINT MESSAGES BASED ON ERROR OR SUCCESS
+            except Exception as ex:
+                logger.exception(
+                    "Error while waiting for sending message to discord: {}".format(ex))
+
+        self._jenkins_service.trigger_build(
+            pr_url, _on_build_action, _on_build_action)
+
         # check this to interact with github https://pypi.org/project/ghapi/ . Maybe create a github service
