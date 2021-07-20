@@ -108,15 +108,13 @@ class _EventListenerCog(commands.Cog):
             logger.info("Unable to extract pr url from message")
             return
 
-        def _on_build_action(msg):
+        def _on_build_action(msg, url=None, success=False):
             try:
-                self._bot.loop.create_task(
-                    self._discord_service.send_message_to_discord(message.channel, msg))  # PAINT MESSAGES BASED ON ERROR OR SUCCESS
+                self._bot.loop.create_task(self._discord_service.send_success_message_to_discord(
+                    message.channel, msg=msg, url=url) if success else self._discord_service.send_fail_message_to_discord(message.channel, msg=msg, url=url))
             except Exception as ex:
                 logger.exception(
                     "Error while waiting for sending message to discord: {}".format(ex))
 
         self._jenkins_service.trigger_build(
             pr_url, _on_build_action, _on_build_action)
-
-        # check this to interact with github https://pypi.org/project/ghapi/ . Maybe create a github service
