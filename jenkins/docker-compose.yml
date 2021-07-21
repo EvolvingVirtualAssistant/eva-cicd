@@ -28,6 +28,9 @@ services:
     build:
       context: .
       dockerfile: jenkins-agent.Dockerfile
+    cap_add:
+      - NET_ADMIN
+    privileged: true
     networks:
       - 'jenkins'
     ports:
