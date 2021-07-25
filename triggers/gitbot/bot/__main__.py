@@ -1,5 +1,5 @@
 from bot.drivers import DiscordListener
-from bot.services import DiscordService, JenkinsService
+from bot.services import DiscordService, JenkinsService, GithubService
 from bot.driven.data_sources import JenkinsHttpAdapter, ParamsEnvAdapter
 import yaml
 import logging
@@ -23,10 +23,11 @@ def main():
     discord_token = params_repository.get_discord_token()
 
     discord_service = DiscordService()
-    jenkins_service = JenkinsService(jenkins_repository)
+    jenkins_service = JenkinsService(jenkins_repository, params_repository)
+    github_service = GithubService(params_repository)
 
     discord_listener = DiscordListener(discord_token, discord_service,
-                                       jenkins_service, params_repository)
+                                       jenkins_service, github_service, params_repository)
     discord_listener.start_listener(True)
 
     logger.debug("Stopping Bot")

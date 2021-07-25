@@ -1,4 +1,5 @@
-from bot.services import DiscordService, JenkinsService
+from discord.embeds import EmptyEmbed
+from bot.services import DiscordService, JenkinsService, GithubService
 from bot.driven.repositories import ParamsRepository
 from discord.message import Message
 from discord.ext import commands
@@ -16,11 +17,11 @@ class DiscordListener():
     _bot_running_lock = threading.Lock()
     _bot_running = False
 
-    def __init__(self, token, discord_service: DiscordService, jenkins_service: JenkinsService, params_repository: ParamsRepository):
+    def __init__(self, token, discord_service: DiscordService, jenkins_service: JenkinsService, github_service: GithubService, params_repository: ParamsRepository):
         self._token = token
         if DiscordListener._bot.get_cog("_EventListenerCog") is None:
             DiscordListener._bot.add_cog(_EventListenerCog(DiscordListener._bot, discord_service,
-                                                           jenkins_service, params_repository))
+                                                           jenkins_service, github_service, params_repository))
 
     @_bot.event
     async def on_ready():
@@ -68,10 +69,11 @@ class DiscordListener():
 
 class _EventListenerCog(commands.Cog):
 
-    def __init__(self, bot: commands.Bot, discord_service: DiscordService, jenkins_service: JenkinsService, params_repository: ParamsRepository):
+    def __init__(self, bot: commands.Bot, discord_service: DiscordService, jenkins_service: JenkinsService, github_service: GithubService, params_repository: ParamsRepository):
         self._bot = bot
         self._discord_service = discord_service
         self._jenkins_service = jenkins_service
+        self._github_service = github_service
         self._params_repository = params_repository
 
     def _valid_message_author(self, message: Message):
@@ -89,7 +91,16 @@ class _EventListenerCog(commands.Cog):
         if (message.embeds is None or len(message.embeds) == 0 or message.embeds[0].url is None):
             return None
 
-        matched_url = re.match(r".*\/pull\/\d+", message.embeds[0].url)
+        url = message.embeds[0].url if message.embeds[0].url is not EmptyEmbed else message.embeds[0].description
+
+        if re.match(r".*\/commit\/.+", url) is not None:
+            url = self._github_service.get_pr_url_from_commit_url(url)
+            url = '' if url is None else url
+        elif re.match(r".*\/compare\/.+", url) is not None:
+            url = self._github_service.get_pr_url_from_compare_url(url)
+            url = '' if url is None else url
+
+        matched_url = re.match(r".*\/pull\/\d+", url)
 
         if matched_url is None:
             return None

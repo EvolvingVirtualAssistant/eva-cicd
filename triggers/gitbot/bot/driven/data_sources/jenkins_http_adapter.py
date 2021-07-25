@@ -104,6 +104,7 @@ class JenkinsHttpAdapter(JenkinsRepository):
         try:
             docker_compose.check_returncode()
             self._connect()
+            logger.info("Jenkins started")
         except subprocess.CalledProcessError:
             logger.exception(
                 "Error while starting jenkins, through docker-compose command: {}".format(docker_compose.stderr))
@@ -118,11 +119,13 @@ class JenkinsHttpAdapter(JenkinsRepository):
         except Exception:
             logger.exception("Error while quietting down jenkins")
 
-        docker_compose = subprocess.run(['docker-compose', '-f', self._get_jenkins_docker_compose_path(), 'down'], stdout=subprocess.PIPE,
+        docker_compose = subprocess.run(['docker-compose', '-f', self._get_jenkins_docker_compose_path(), 'stop'], stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE, universal_newlines=True)
 
         try:
             docker_compose.check_returncode()
+            self.server = None
+            logger.info("Jenkins stopped")
         except subprocess.CalledProcessError:
             logger.exception(
                 "Error while stopping jenkins, through docker-compose command: {}".format(docker_compose.stderr))

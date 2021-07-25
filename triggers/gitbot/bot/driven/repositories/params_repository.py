@@ -9,8 +9,10 @@ class ParamsRepository(metaclass=ABCMeta):
                 callable(subclass.get_github_allowed_authors) and
                 hasattr(subclass, 'get_discord_token') and
                 callable(subclass.get_discord_token) and
-                hasattr(subclass, 'get_github_token') and
-                callable(subclass.get_github_token) and
+                hasattr(subclass, 'get_github_api_token') and
+                callable(subclass.get_github_api_token) and
+                hasattr(subclass, 'get_github_organization') and
+                callable(subclass.get_github_organization) and
                 hasattr(subclass, 'get_jenkins_url') and
                 callable(subclass.get_jenkins_url) and
                 hasattr(subclass, 'get_jenkins_username') and
@@ -22,7 +24,9 @@ class ParamsRepository(metaclass=ABCMeta):
                 hasattr(subclass, 'get_jenkins_ready_timeout') and
                 callable(subclass.get_jenkins_ready_timeout) and
                 hasattr(subclass, 'get_jenkins_all_nodes_online_timeout') and
-                callable(subclass.get_jenkins_all_nodes_online_timeout) or
+                callable(subclass.get_jenkins_all_nodes_online_timeout) and
+                hasattr(subclass, 'get_jenkins_shutdown_timeout') and
+                callable(subclass.get_jenkins_shutdown_timeout) or
                 NotImplemented)
 
     @abstractmethod
@@ -34,7 +38,11 @@ class ParamsRepository(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_github_token():
+    def get_github_api_token():
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_github_organization():
         raise NotImplementedError
 
     @abstractmethod
@@ -59,4 +67,8 @@ class ParamsRepository(metaclass=ABCMeta):
 
     @abstractmethod
     def get_jenkins_all_nodes_online_timeout():
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_jenkins_shutdown_timeout():
         raise NotImplementedError

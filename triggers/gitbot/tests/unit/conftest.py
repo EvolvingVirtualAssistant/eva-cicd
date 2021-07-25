@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 from discord.message import Message
 from bot.driven.data_sources import JenkinsHttpAdapter, ParamsEnvAdapter
 from bot.driven.repositories import JenkinsRepository, ParamsRepository
-from bot.services import DiscordService, JenkinsService
+from bot.services import DiscordService, JenkinsService, GithubService
 from bot.drivers.discord_listener import _EventListenerCog
 from bot.drivers import DiscordListener
 import pytest
@@ -33,14 +33,19 @@ def discord_service():
 
 
 @pytest.fixture
+def github_service():
+    return GithubService()
+
+
+@pytest.fixture
 def bot_token(params_repository: ParamsRepository):
     return params_repository.get_discord_token()
 
 
 @pytest.fixture
-def discord_listener(bot_token, discord_service, jenkins_service, params_repository):
+def discord_listener(bot_token, discord_service, jenkins_service, github_service, params_repository):
     return DiscordListener(
-        bot_token, discord_service, jenkins_service, params_repository)
+        bot_token, discord_service, jenkins_service, github_service, params_repository)
 
 
 @pytest.fixture
@@ -50,8 +55,8 @@ def discord_internal_bot():
 
 
 @pytest.fixture
-def discord_event_listener_cog(discord_internal_bot, discord_service, jenkins_service, params_repository):
-    return _EventListenerCog(discord_internal_bot, discord_service, jenkins_service, params_repository)
+def discord_event_listener_cog(discord_internal_bot, discord_service, jenkins_service, github_service, params_repository):
+    return _EventListenerCog(discord_internal_bot, discord_service, jenkins_service, github_service, params_repository)
 
 
 @pytest.fixture
