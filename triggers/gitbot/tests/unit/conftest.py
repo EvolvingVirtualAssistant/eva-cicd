@@ -9,7 +9,6 @@ from bot.drivers.discord_listener import _EventListenerCog
 from bot.drivers import DiscordListener
 import pytest
 import json
-import ast
 
 
 @pytest.fixture
@@ -18,13 +17,13 @@ def params_repository() -> ParamsRepository:
 
 
 @pytest.fixture
-def jenkins_repository() -> JenkinsRepository:
-    return JenkinsHttpAdapter()
+def jenkins_repository(params_repository) -> JenkinsRepository:
+    return JenkinsHttpAdapter(params_repository)
 
 
 @pytest.fixture
-def jenkins_service(jenkins_repository):
-    return JenkinsService(jenkins_repository)
+def jenkins_service(jenkins_repository, params_repository):
+    return JenkinsService(jenkins_repository, params_repository)
 
 
 @pytest.fixture
@@ -33,8 +32,8 @@ def discord_service():
 
 
 @pytest.fixture
-def github_service():
-    return GithubService()
+def github_service(params_repository):
+    return GithubService(params_repository)
 
 
 @pytest.fixture
@@ -61,6 +60,16 @@ def discord_event_listener_cog(discord_internal_bot, discord_service, jenkins_se
 
 @pytest.fixture
 def sample_message():
-    with open('triggers/gitbot/tests/resources/sample_message.json', 'r') as f:
+    from os.path import abspath, join, dirname
+    file = abspath(join(dirname(__file__), '../resources/sample_message.json'))
+    with open(file, 'r') as f:
         msg: Message = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
     return msg
+
+
+@pytest.fixture
+def mock_any_arg():
+    class MockAnyArg(object):
+        def __eq__(self, o: object) -> bool:
+            return True
+    return MockAnyArg()

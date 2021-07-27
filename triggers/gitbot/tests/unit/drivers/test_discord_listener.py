@@ -157,12 +157,14 @@ def test_event_on_message_invalid_author(discord_event_listener_cog: _EventListe
     discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
     discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock()
+    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock()
+    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
     discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_not_called()
-    discord_event_listener_cog._discord_service.send_message_to_discord.assert_not_called()
+    discord_event_listener_cog._discord_service.send_success_message_to_discord.assert_not_called()
+    discord_event_listener_cog._discord_service.send_fail_message_to_discord.assert_not_called()
 
 
 def _invalid_pr_url(samples_message, embeds):
@@ -186,29 +188,35 @@ def test_event_on_message_invalid_pr_url(discord_event_listener_cog: _EventListe
     msg = change_msg(sample_message)
     discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock()
+    discord_event_listener_cog._jenkins_service.trigger_build = MagicMock()
+    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock()
+    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_not_called()
-    discord_event_listener_cog._discord_service.send_message_to_discord.assert_not_called()
+    discord_event_listener_cog._jenkins_service.trigger_build.assert_not_called()
+    discord_event_listener_cog._discord_service.send_success_message_to_discord.assert_not_called()
+    discord_event_listener_cog._discord_service.send_fail_message_to_discord.assert_not_called()
 
 
-def test_event_on_message(discord_event_listener_cog: _EventListenerCog, sample_message):
-    async def mock_send_message_to_discord(channel, pr_url):
+def test_event_on_message(discord_event_listener_cog: _EventListenerCog, sample_message, mock_any_arg):
+    async def mock_send_status_message_to_discord(channel, msg, url):
+        pass
+
+    def mock_trigger_build(pr_url, on_complete, on_error):
         pass
 
     discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discord_service.send_message_to_discord = MagicMock(
-        side_effect=mock_send_message_to_discord)
+    discord_event_listener_cog._jenkins_service.trigger_build = MagicMock(
+        side_effect=mock_trigger_build)
+    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock(
+        side_effect=mock_send_status_message_to_discord)
+    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock(
+        side_effect=mock_send_status_message_to_discord)
     url = re.match(r".*\/pull\/\d+", sample_message.embeds[0].url).group()
 
     _call_on_message(discord_event_listener_cog, sample_message)
 
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_called_with(
-        url)
-    discord_event_listener_cog._discord_service.send_message_to_discord.assert_called_with(
-        sample_message.channel, url)
+    discord_event_listener_cog._jenkins_service.trigger_build.assert_called_with(
+        url, mock_any_arg, mock_any_arg)

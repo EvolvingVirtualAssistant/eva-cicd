@@ -1,0 +1,5 @@
+.dockerignore
+Dockerfile
+logs/*
+.env.example
+setup_dev_env.sh
