@@ -10,10 +10,7 @@ class DiscordService():
     async def send_message_to_discord(self, channel, msg: str):
         await channel.send(msg)
 
-    async def send_success_message_to_discord(self, channel, msg: str, url=None):
-        embed = Embed(description=msg, url=url, colour=Color.green())
-        await channel.send(embed=embed)
-
-    async def send_fail_message_to_discord(self, channel, msg: str, url=None):
-        embed = Embed(description=msg, url=url, colour=Color.red())
+    async def send_status_message_to_discord(self, channel, msg: str, url=None, success=False):
+        color = Color.green() if success else Color.red()
+        embed = Embed(description=msg, url=url, colour=color)
         await channel.send(embed=embed)

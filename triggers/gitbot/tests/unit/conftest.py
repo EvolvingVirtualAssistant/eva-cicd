@@ -1,14 +1,17 @@
+import json
+from os.path import abspath, join, dirname
 from types import SimpleNamespace
 from unittest.mock import MagicMock
-
+import pytest
 from discord.message import Message
 from bot.driven.data_sources import JenkinsHttpAdapter, ParamsEnvAdapter
 from bot.driven.repositories import JenkinsRepository, ParamsRepository
 from bot.services import DiscordService, JenkinsService, GithubService
 from bot.drivers.discord_listener import _EventListenerCog
 from bot.drivers import DiscordListener
-import pytest
-import json
+
+
+# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
@@ -60,16 +63,17 @@ def discord_event_listener_cog(discord_internal_bot, discord_service, jenkins_se
 
 @pytest.fixture
 def sample_message():
-    from os.path import abspath, join, dirname
     file = abspath(join(dirname(__file__), '../resources/sample_message.json'))
-    with open(file, 'r') as f:
-        msg: Message = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
+    with open(file, 'r') as sample:
+        msg: Message = json.load(
+            sample, object_hook=lambda d: SimpleNamespace(**d))
     return msg
 
 
 @pytest.fixture
 def mock_any_arg():
-    class MockAnyArg(object):
+    # pylint: disable=too-few-public-methods
+    class MockAnyArg():
         def __eq__(self, o: object) -> bool:
             return True
     return MockAnyArg()

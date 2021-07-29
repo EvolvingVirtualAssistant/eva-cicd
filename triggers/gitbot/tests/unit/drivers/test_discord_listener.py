@@ -1,18 +1,18 @@
-from discord.ext.commands.bot import Bot
-from unittest.mock import MagicMock
-from bot.drivers.discord_listener import _EventListenerCog
-from bot.drivers import DiscordListener
 import asyncio
 import logging
-import pytest
 import re
+from unittest.mock import MagicMock
 import time
 import threading
+import pytest
+from discord.ext.commands.bot import Bot
+from bot.drivers.discord_listener import _EventListenerCog
+from bot.drivers import DiscordListener
 
 
 logger = logging.getLogger(__name__).parent
 
-"""Testing listener starting and stoping functionalities"""
+# Testing listener starting and stoping functionalities
 
 
 def _wait_for_assertion(assertion):
@@ -29,13 +29,13 @@ def _wait_for_assertion(assertion):
 def test_blocking_listener(discord_listener: DiscordListener, discord_internal_bot: Bot):
     stop_running = False
 
+    # pylint: disable=unused-argument
     def mock_run(token):
         while not stop_running:
             time.sleep(1)
-        return
 
     def assert_bot_not_running():  # How can I make this generic????
-        assert DiscordListener._bot_running == False
+        assert DiscordListener._bot_running is False
 
     discord_internal_bot.run = MagicMock(side_effect=mock_run)
 
@@ -44,7 +44,7 @@ def test_blocking_listener(discord_listener: DiscordListener, discord_internal_b
     test_thread.start()
 
     _wait_for_assertion(discord_internal_bot.run.assert_called)
-    assert DiscordListener._bot_running == True
+    assert DiscordListener._bot_running is True
     stop_running = True
     test_thread.join()
     _wait_for_assertion(assert_bot_not_running)
@@ -53,10 +53,10 @@ def test_blocking_listener(discord_listener: DiscordListener, discord_internal_b
 def test_non_blocking_listener(discord_listener: DiscordListener, discord_internal_bot: Bot):
     stop_running = False
 
+    # pylint: disable=unused-argument
     def mock_run(token):
         while not stop_running:
             time.sleep(1)
-        return
 
     async def stop_mock_run():
         nonlocal stop_running
@@ -68,22 +68,22 @@ def test_non_blocking_listener(discord_listener: DiscordListener, discord_intern
     discord_listener.start_listener(False)
 
     _wait_for_assertion(discord_internal_bot.run.assert_called)
-    assert DiscordListener._bot_running == True
+    assert DiscordListener._bot_running is True
     discord_listener.stop_listener()
-    discord_internal_bot.close.assert_called
-    assert DiscordListener._bot_running == False
+    discord_internal_bot.close.assert_called()
+    assert DiscordListener._bot_running is False
 
 
 def test_only_one_listener_at_a_time(discord_listener: DiscordListener, discord_internal_bot: Bot):
     stop_running = False
     n_runs = 0
 
+    # pylint: disable=unused-argument
     def mock_run(token):
         nonlocal n_runs
         n_runs += 1
         while not stop_running:
             time.sleep(1)
-        return
 
     async def stop_mock_run():
         nonlocal stop_running
@@ -95,24 +95,24 @@ def test_only_one_listener_at_a_time(discord_listener: DiscordListener, discord_
     discord_listener.start_listener(False)
 
     _wait_for_assertion(discord_internal_bot.run.assert_called)
-    assert DiscordListener._bot_running == True
+    assert DiscordListener._bot_running is True
     assert n_runs == 1
     discord_listener.start_listener(False)
     assert n_runs == 1
 
     discord_listener.stop_listener()
-    discord_internal_bot.close.assert_called
-    assert DiscordListener._bot_running == False
+    discord_internal_bot.close.assert_called()
+    assert DiscordListener._bot_running is False
 
 
-"""Testing listener specific message handling"""
+# Testing listener specific message handling
 
 
 def _call_on_message(discord_event_listener_cog: _EventListenerCog, sample_message):
     try:
         asyncio.run(discord_event_listener_cog.on_message(sample_message))
     except Exception as ex:
-        logger.exception("Test error on message:")
+        logger.exception("Test error on message: {}".format(ex))
         assert False
 
 
@@ -156,15 +156,13 @@ def test_event_on_message_invalid_author(discord_event_listener_cog: _EventListe
     discord_event_listener_cog._bot.user = get_bot_user(sample_message)
     discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins = MagicMock()
-    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock()
-    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock()
+    discord_event_listener_cog._jenkins_service.trigger_build = MagicMock()
+    discord_event_listener_cog._discord_service.send_status_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
-    discord_event_listener_cog._jenkins_service.send_message_to_jenkins.assert_not_called()
-    discord_event_listener_cog._discord_service.send_success_message_to_discord.assert_not_called()
-    discord_event_listener_cog._discord_service.send_fail_message_to_discord.assert_not_called()
+    discord_event_listener_cog._jenkins_service.trigger_build.assert_not_called()
+    discord_event_listener_cog._discord_service.send_status_message_to_discord.assert_not_called()
 
 
 def _invalid_pr_url(samples_message, embeds):
@@ -189,20 +187,20 @@ def test_event_on_message_invalid_pr_url(discord_event_listener_cog: _EventListe
     discord_event_listener_cog._params_repository.get_github_allowed_authors = MagicMock(
         return_value=["Test"])
     discord_event_listener_cog._jenkins_service.trigger_build = MagicMock()
-    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock()
-    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock()
+    discord_event_listener_cog._discord_service.send_status_message_to_discord = MagicMock()
 
     _call_on_message(discord_event_listener_cog, msg)
 
     discord_event_listener_cog._jenkins_service.trigger_build.assert_not_called()
-    discord_event_listener_cog._discord_service.send_success_message_to_discord.assert_not_called()
-    discord_event_listener_cog._discord_service.send_fail_message_to_discord.assert_not_called()
+    discord_event_listener_cog._discord_service.send_status_message_to_discord.assert_not_called()
 
 
 def test_event_on_message(discord_event_listener_cog: _EventListenerCog, sample_message, mock_any_arg):
+    # pylint: disable=unused-argument
     async def mock_send_status_message_to_discord(channel, msg, url):
         pass
 
+    # pylint: disable=unused-argument
     def mock_trigger_build(pr_url, on_complete, on_error):
         pass
 
@@ -210,9 +208,7 @@ def test_event_on_message(discord_event_listener_cog: _EventListenerCog, sample_
         return_value=["Test"])
     discord_event_listener_cog._jenkins_service.trigger_build = MagicMock(
         side_effect=mock_trigger_build)
-    discord_event_listener_cog._discord_service.send_success_message_to_discord = MagicMock(
-        side_effect=mock_send_status_message_to_discord)
-    discord_event_listener_cog._discord_service.send_fail_message_to_discord = MagicMock(
+    discord_event_listener_cog._discord_service.send_status_message_to_discord = MagicMock(
         side_effect=mock_send_status_message_to_discord)
     url = re.match(r".*\/pull\/\d+", sample_message.embeds[0].url).group()
 

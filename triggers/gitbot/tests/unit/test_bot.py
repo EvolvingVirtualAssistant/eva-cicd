@@ -8,5 +8,3 @@
 # then we do the entire flow until jenkins, where there will be an empty job just for this test, to ensure it receives the message
 # and runs the job. The job will only track changes in this folder triggers/gitbot (probably) and will run. Then jenkins somehow replies
 # back to the bot and we assert receiving that confirmation the job ran and finish the test
-
-import pytest

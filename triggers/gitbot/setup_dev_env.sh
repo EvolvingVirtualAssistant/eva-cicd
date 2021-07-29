@@ -54,7 +54,7 @@ function install_python() {
 }
 
 function install_requirements() {
-    pip install -r dev-requirements
+    pip install -r dev-requirements.txt
 }
 
 function print_notes() {

@@ -1,14 +1,14 @@
+import logging
+import logging.config
+import yaml
 from bot.drivers import DiscordListener
 from bot.services import DiscordService, JenkinsService, GithubService
 from bot.driven.data_sources import JenkinsHttpAdapter, ParamsEnvAdapter
-import yaml
-import logging
-import logging.config
 
 
 def setup_logging():
-    with open('logging.yaml', 'r') as f:
-        config = yaml.safe_load(f.read())
+    with open('logging.yaml', 'r') as file:
+        config = yaml.safe_load(file.read())
         logging.config.dictConfig(config)
 
 

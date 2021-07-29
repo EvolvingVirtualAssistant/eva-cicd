@@ -4,7 +4,7 @@ class JenkinsError(Exception):
     def __init__(self, msg=None):
         if msg is None:
             msg = "Error while using jenkins"
-        super(JenkinsError, self).__init__(msg)
+        super().__init__(msg)
 
 
 class JenkinsNoConnectionError(JenkinsError):
@@ -13,7 +13,7 @@ class JenkinsNoConnectionError(JenkinsError):
     def __init__(self, msg=None):
         if msg is None:
             msg = "There is no connection established with jenkins"
-        super(JenkinsNoConnectionError, self).__init__(msg)
+        super().__init__(msg)
 
 
 class JenkinsStartingError(JenkinsError):
@@ -27,7 +27,7 @@ class JenkinsStartingError(JenkinsError):
         if stderr is not None:
             msg += " -> {}".format(stderr)
 
-        super(JenkinsStartingError, self).__init__(msg)
+        super().__init__(msg)
 
 
 class JenkinsStoppingError(JenkinsError):
@@ -41,4 +41,4 @@ class JenkinsStoppingError(JenkinsError):
         if stderr is not None:
             msg += " -> {}".format(stderr)
 
-        super(JenkinsStoppingError, self).__init__(msg)
+        super().__init__(msg)

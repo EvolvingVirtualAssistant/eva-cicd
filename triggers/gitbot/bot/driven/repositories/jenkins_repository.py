@@ -16,17 +16,17 @@ class JenkinsRepository(metaclass=ABCMeta):
                 NotImplemented)
 
     @abstractmethod
-    def is_jenkins_running():
+    def is_jenkins_running(self):
         raise NotImplementedError
 
     @abstractmethod
-    def start_jenkins():
+    def start_jenkins(self):
         raise NotImplementedError
 
     @abstractmethod
-    def stop_jenkins():
+    def stop_jenkins(self):
         raise NotImplementedError
 
     @abstractmethod
-    def trigger_build(on_complete, job_name, parameters):
+    def trigger_build(self, on_complete, job_name, parameters):
         raise NotImplementedError

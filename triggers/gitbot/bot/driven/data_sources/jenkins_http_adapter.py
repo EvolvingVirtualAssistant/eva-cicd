@@ -1,11 +1,11 @@
-from bot.exceptions import JenkinsNoConnectionError, JenkinsStartingError, JenkinsStoppingError
-from bot.driven.repositories import JenkinsRepository, ParamsRepository
-import jenkins
 import logging
-import subprocess
 from os.path import join, dirname, abspath
+import subprocess
 import threading
 import time
+import jenkins
+from bot.exceptions import JenkinsNoConnectionError, JenkinsStartingError, JenkinsStoppingError
+from bot.driven.repositories import JenkinsRepository, ParamsRepository
 
 
 logger = logging.getLogger(__name__).parent
@@ -41,23 +41,30 @@ class JenkinsHttpAdapter(JenkinsRepository):
         return True
 
     def _connect(self):
-        if not self.is_jenkins_running():
-            try:
-                self.server = jenkins.Jenkins(
-                    self.params_repository.get_jenkins_url(),
-                    username=self.params_repository.get_jenkins_username(),
-                    password=self.params_repository.get_jenkins_password(),
-                    timeout=self.params_repository.get_jenkins_connection_timeout())
+        if self.is_jenkins_running():
+            return
 
-                if not self._all_nodes_online(self.params_repository.get_jenkins_all_nodes_online_timeout()) or not self.server.wait_for_normal_op(self.params_repository.get_jenkins_ready_timeout()):
-                    self.server = None
-                    logger.error("Jenkins is not ready")
+        try:
+            self.server = jenkins.Jenkins(
+                self.params_repository.get_jenkins_url(),
+                username=self.params_repository.get_jenkins_username(),
+                password=self.params_repository.get_jenkins_password(),
+                timeout=self.params_repository.get_jenkins_connection_timeout())
 
-            except Exception as ex:
+            nodes_timeout = self.params_repository.get_jenkins_all_nodes_online_timeout()
+            ready_timeout = self.params_repository.get_jenkins_ready_timeout()
+
+            if not self._all_nodes_online(nodes_timeout) or \
+                    not self.server.wait_for_normal_op(ready_timeout):
                 self.server = None
-                logger.exception(
-                    "Error establishing connection to jenkins: {}".format(ex))
+                logger.error("Jenkins is not ready")
 
+        except Exception as ex:
+            self.server = None
+            logger.exception(
+                "Error establishing connection to jenkins: {}".format(ex))
+
+    # pylint: disable=no-self-use
     def _get_jenkins_docker_compose_path(self):
         return abspath(join(dirname(__file__), '../../../../../jenkins/docker-compose.yml'))
 
@@ -66,7 +73,8 @@ class JenkinsHttpAdapter(JenkinsRepository):
 
         while not build_started:
             item_info: dict = self.server.get_queue_item(queue_item_number)
-            if item_info.get(JenkinsHttpAdapter.WAITING_EXECUTOR_KEYWORD) is None and item_info.get(JenkinsHttpAdapter.RUNNING_EXECUTOR_KEYWORD) is not None:
+            if item_info.get(JenkinsHttpAdapter.WAITING_EXECUTOR_KEYWORD) is None and \
+                    item_info.get(JenkinsHttpAdapter.RUNNING_EXECUTOR_KEYWORD) is not None:
                 build_started = True
             else:
                 time.sleep(1)
@@ -92,23 +100,30 @@ class JenkinsHttpAdapter(JenkinsRepository):
         if self.server is None:
             return False
 
-        return self._all_nodes_online(self.params_repository.get_jenkins_all_nodes_online_timeout()) and self.server.wait_for_normal_op(self.params_repository.get_jenkins_ready_timeout())
+        nodes_timeout = self.params_repository.get_jenkins_all_nodes_online_timeout()
+        ready_timeout = self.params_repository.get_jenkins_ready_timeout()
+
+        return self._all_nodes_online(nodes_timeout) and \
+            self.server.wait_for_normal_op(ready_timeout)
 
     def start_jenkins(self):
         if self.is_jenkins_running():
             return
 
-        docker_compose = subprocess.run(['docker-compose', '-f', self._get_jenkins_docker_compose_path(), 'up', '-d'], stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE, universal_newlines=True)
+        run_args = ['docker-compose', '-f',
+                    self._get_jenkins_docker_compose_path(), 'up', '-d']
+        docker_compose = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        universal_newlines=True, check=True)
 
         try:
             docker_compose.check_returncode()
             self._connect()
             logger.info("Jenkins started")
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as ex:
             logger.exception(
-                "Error while starting jenkins, through docker-compose command: {}".format(docker_compose.stderr))
-            raise JenkinsStartingError(stderr=docker_compose.stderr)
+                "Error while starting jenkins, through docker-compose command: {}"
+                .format(docker_compose.stderr))
+            raise JenkinsStartingError(stderr=docker_compose.stderr) from ex
 
     def stop_jenkins(self):
         if not self.is_jenkins_running():
@@ -119,17 +134,20 @@ class JenkinsHttpAdapter(JenkinsRepository):
         except Exception:
             logger.exception("Error while quietting down jenkins")
 
-        docker_compose = subprocess.run(['docker-compose', '-f', self._get_jenkins_docker_compose_path(), 'stop'], stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE, universal_newlines=True)
+        run_args = ['docker-compose', '-f',
+                    self._get_jenkins_docker_compose_path(), 'stop']
+        docker_compose = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        universal_newlines=True, check=True)
 
         try:
             docker_compose.check_returncode()
             self.server = None
             logger.info("Jenkins stopped")
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as ex:
             logger.exception(
-                "Error while stopping jenkins, through docker-compose command: {}".format(docker_compose.stderr))
-            raise JenkinsStoppingError(stderr=docker_compose.stderr)
+                "Error while stopping jenkins, through docker-compose command: {}"
+                .format(docker_compose.stderr))
+            raise JenkinsStoppingError(stderr=docker_compose.stderr) from ex
 
     def trigger_build(self, on_complete, job_name="", parameters=None):
         if not self.is_jenkins_running():
@@ -138,11 +156,14 @@ class JenkinsHttpAdapter(JenkinsRepository):
         next_build_number = self.server.get_job_info(job_name)[
             'nextBuildNumber']
 
-        ''' Setting crumb to None forces a new crumb to be obtained in the build_job request, instead of using the previously created one, 
-        which seems to solve the error: "HTTP ERROR 403 No valid crumb was included in the request"'''
+        # Setting crumb to None forces a new crumb to be obtained in the build_job request,
+        # instead of using the previously created one, which seems to solve the error:
+        # "HTTP ERROR 403 No valid crumb was included in the request"
         self.server.crumb = None
         queue_item_number = self.server.build_job(
             name=job_name, parameters=parameters)
 
-        threading.Thread(target=self._wait_for_build, daemon=True,
-                         args=(job_name, queue_item_number, next_build_number, on_complete,)).start()
+        method_args = (job_name, queue_item_number,
+                       next_build_number, on_complete,)
+        threading.Thread(target=self._wait_for_build,
+                         daemon=True, args=method_args).start()

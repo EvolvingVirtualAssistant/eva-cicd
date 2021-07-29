@@ -26,6 +26,13 @@ ENV PATH=/root/.local/bin:$PATH
 
 FROM base as continuous-integration
 # Lint
+# pylint, flake8, bandit
+RUN pylint bot
+RUN pylint tests
+RUN flake8 --append-config=.flake8 bot
+RUN flake8 --append-config=.flake8 tests
+RUN bandit -c .bandit -r bot
+RUN bandit -c .bandit -r tests
 
 # vunerabilities
 # yet to be decided what to use
@@ -35,3 +42,5 @@ RUN pytest tests/unit/
 
 # Integration tests
 # python -m pytest tests/integration/
+
+CMD ["echo", "Finished"]

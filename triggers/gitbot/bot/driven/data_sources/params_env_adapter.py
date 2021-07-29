@@ -1,61 +1,63 @@
-from bot.driven.repositories import ParamsRepository
-from dotenv import load_dotenv
-from os.path import join, dirname
 import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+from bot.driven.repositories import ParamsRepository
 
 
 class ParamsEnvAdapter(ParamsRepository):
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
         env_file_path = join(dirname(__file__), '../../../.env')
-        if os.getenv('IS_LOCAL', True):
+        if os.getenv('IS_LOCAL', 'True') == 'True':
             load_dotenv(env_file_path)
 
-        self.DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-        self.GITHUB_ALLOWED_AUTHORS = os.getenv('GITHUB_ALLOWED_AUTHORS')
-        self.GITHUB_API_TOKEN = os.getenv('GITHUB_API_TOKEN')
-        self.GITHUB_ORGANIZATION = os.getenv('GITHUB_ORGANIZATION')
-        self.JENKINS_URL = os.getenv('JENKINS_URL')
-        self.JENKINS_USERNAME = os.getenv('JENKINS_USERNAME')
-        self.JENKINS_PASSWORD = os.getenv('JENKINS_PASSWORD')
-        self.JENKINS_CONNECTION_TIMEOUT = int(os.getenv(
+        self.discord_token = os.getenv('DISCORD_TOKEN')
+        self.github_allowed_authors = os.getenv('GITHUB_ALLOWED_AUTHORS')
+        self.github_api_token = os.getenv('GITHUB_API_TOKEN')
+        self.github_organization = os.getenv('GITHUB_ORGANIZATION')
+        self.jenkins_url = os.getenv('JENKINS_URL')
+        self.jenkins_username = os.getenv('JENKINS_USERNAME')
+        self.jenkins_password = os.getenv('JENKINS_PASSWORD')
+        self.jenkins_connection_timeout = int(os.getenv(
             'JENKINS_CONNECTION_TIMEOUT'))
-        self.JENKINS_READY_TIMEOUT = int(os.getenv(
+        self.jenkins_ready_timeout = int(os.getenv(
             'JENKINS_READY_TIMEOUT'))
-        self.JENKINS_ALL_NODES_ONLINE_TIMEOUT = int(os.getenv(
+        self.jenkins_all_nodes_online_timeout = int(os.getenv(
             'JENKINS_ALL_NODES_ONLINE_TIMEOUT'))
-        self.JENKINS_SHUTDOWN_TIMEOUT = int(
+        self.jenkins_shutdown_timeout = int(
             os.getenv('JENKINS_SHUTDOWN_TIMEOUT'))
 
     def get_discord_token(self):
-        return self.DISCORD_TOKEN
+        return self.discord_token
 
     def get_github_allowed_authors(self):
-        return self.GITHUB_ALLOWED_AUTHORS
+        return self.github_allowed_authors
 
     def get_github_api_token(self):
-        return self.GITHUB_API_TOKEN
+        return self.github_api_token
 
     def get_github_organization(self):
-        return self.GITHUB_ORGANIZATION
+        return self.github_organization
 
     def get_jenkins_url(self):
-        return self.JENKINS_URL
+        return self.jenkins_url
 
     def get_jenkins_username(self):
-        return self.JENKINS_USERNAME
+        return self.jenkins_username
 
     def get_jenkins_password(self):
-        return self.JENKINS_PASSWORD
+        return self.jenkins_password
 
     def get_jenkins_connection_timeout(self):
-        return self.JENKINS_CONNECTION_TIMEOUT
+        return self.jenkins_connection_timeout
 
     def get_jenkins_ready_timeout(self):
-        return self.JENKINS_READY_TIMEOUT
+        return self.jenkins_ready_timeout
 
     def get_jenkins_all_nodes_online_timeout(self):
-        return self.JENKINS_ALL_NODES_ONLINE_TIMEOUT
+        return self.jenkins_all_nodes_online_timeout
 
     def get_jenkins_shutdown_timeout(self):
-        return self.JENKINS_SHUTDOWN_TIMEOUT
+        return self.jenkins_shutdown_timeout

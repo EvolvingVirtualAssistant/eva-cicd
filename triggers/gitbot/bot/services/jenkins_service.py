@@ -1,9 +1,9 @@
+import logging
+from queue import Queue
+import re
+from threading import Thread, Timer
 from bot.exceptions import JenkinsStartingError, JenkinsStoppingError
 from bot.driven.repositories import JenkinsRepository, ParamsRepository
-from queue import Queue
-from threading import Thread, Timer
-import logging
-import re
 
 
 logger = logging.getLogger(__name__).parent
@@ -20,18 +20,19 @@ class JenkinsService():
             target=self._job_runner, daemon=True)
         self.jenkins_job_runner.start()
 
+    # pylint: disable=no-self-use
     def _get_job_name(self, pr_url):
         org_folder = 'GitHub EVA Organization Folder'
 
         pull_split = re.split(r"\/pull\/", pr_url)
         repo_split = pull_split[0].split("/")
 
-        repo = repo_split[repo_split.__len__()-1]
-        pr = 'PR-{}'.format(pull_split[pull_split.__len__()-1])
-        return "{}/{}/{}".format(org_folder, repo, pr)
+        repo = repo_split[repo_split.__len__() - 1]
+        pr_name = 'PR-{}'.format(pull_split[pull_split.__len__() - 1])
+        return "{}/{}/{}".format(org_folder, repo, pr_name)
 
-    def _get_job_parameters(self, pr_url):
-        return None
+    # def _get_job_parameters(self, pr_url):
+    #    return None
 
     def _start_jenkins_shutdown_timer(self):
         if self.timed_jenkins_shutdown is not None and self.timed_jenkins_shutdown.is_alive():
@@ -53,7 +54,7 @@ class JenkinsService():
             try:
                 pr_url, on_complete, on_error = self.queue.get()
                 job_name = self._get_job_name(pr_url)
-                job_parameters = self._get_job_parameters(pr_url)
+                job_parameters = None  # self._get_job_parameters(pr_url)
 
                 if not self._jenkins_repository.is_jenkins_running():
                     self._jenkins_repository.start_jenkins()
