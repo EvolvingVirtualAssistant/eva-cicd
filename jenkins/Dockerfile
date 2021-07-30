@@ -9,7 +9,7 @@ RUN mvn -f /usr/src/app/pom.xml package -DskipTests
 
 # --------------------------------------
 
-FROM jenkins/jenkins:lts-jdk11
+FROM jenkins/jenkins:2.289.3-jdk11
 USER root
 RUN apt-get update && apt-get install -y apt-transport-https \
     ca-certificates curl gnupg2 \
@@ -22,7 +22,7 @@ RUN add-apt-repository \
 RUN apt-get update && apt-get install -y docker-ce-cli
 
 USER jenkins
-RUN jenkins-plugin-cli --plugins "blueocean:1.24.7 docker-workflow:1.26 git:4.7.2 pipeline-as-yaml:0.16-rc locale:1.4 ssh-slaves:1.31.7 ssh-credentials:1.19 git:4.7.2 configuration-as-code:1.51 job-dsl:1.77"
+RUN jenkins-plugin-cli --plugins "sshd:3.1.0 blueocean:1.24.8 docker-workflow:1.26 git:4.8.1 pipeline-as-yaml:0.16-rc locale:1.4 ssh-slaves:1.31.7 ssh-credentials:1.19 configuration-as-code:1.51 job-dsl:1.77"
 
 USER root
 
