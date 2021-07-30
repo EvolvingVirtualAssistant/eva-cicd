@@ -100,6 +100,7 @@ class _EventListenerCog(commands.Cog):
 
     def _get_github_pr_url(self, message: Message):
         if (message.embeds is None or len(message.embeds) == 0 or message.embeds[0].url is None):
+            logger.error("Something wrong with the message.embdes content={}".format(message.embeds))
             return None
 
         if message.embeds[0].url is not EmptyEmbed:
@@ -117,6 +118,7 @@ class _EventListenerCog(commands.Cog):
         matched_url = re.match(r".*\/pull\/\d+", url)
 
         if matched_url is None:
+            logger.error("Unexpected pull url format for={}".format(url))
             return None
 
         return matched_url.group()
@@ -130,7 +132,7 @@ class _EventListenerCog(commands.Cog):
         pr_url = self._get_github_pr_url(message)
 
         if pr_url is None:
-            logger.info("Unable to extract pr url from message")
+            logger.error("Unable to extract pr url from message")
             return
 
         def _on_build_action(msg, url=None, success=False):

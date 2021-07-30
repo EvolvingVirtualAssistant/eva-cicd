@@ -7,6 +7,6 @@ pipeline:
       parallel:
         - stage: 'Gitbot'
           steps: #lint, check vunerabilities, run tests
-            sh "jenkins/gitbot_ci.sh"
+            sh "triggers/jenkins/gitbot_ci.sh"
         #- stage: 'Client'
-        #  steps:  
+        #  steps:

@@ -96,6 +96,12 @@ class JenkinsHttpAdapter(JenkinsRepository):
         on_complete("result={}\nurl={}".format(result, url), url,
                     result == JenkinsHttpAdapter.JOB_SUCCESS)
 
+    def _clean_jenkins_server_crumb(self):
+        # Setting crumb to None forces a new crumb to be obtained in the build_job request,
+        # instead of using the previously created one, which seems to solve the error:
+        # "HTTP ERROR 403 No valid crumb was included in the request"
+        self.server.crumb = None
+
     def is_jenkins_running(self):
         if self.server is None:
             return False
@@ -130,6 +136,7 @@ class JenkinsHttpAdapter(JenkinsRepository):
             return
 
         try:
+            self._clean_jenkins_server_crumb()
             self.server.quiet_down()
         except Exception:
             logger.exception("Error while quietting down jenkins")
@@ -156,10 +163,7 @@ class JenkinsHttpAdapter(JenkinsRepository):
         next_build_number = self.server.get_job_info(job_name)[
             'nextBuildNumber']
 
-        # Setting crumb to None forces a new crumb to be obtained in the build_job request,
-        # instead of using the previously created one, which seems to solve the error:
-        # "HTTP ERROR 403 No valid crumb was included in the request"
-        self.server.crumb = None
+        self._clean_jenkins_server_crumb()
         queue_item_number = self.server.build_job(
             name=job_name, parameters=parameters)
 
