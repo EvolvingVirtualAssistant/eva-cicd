@@ -14,6 +14,7 @@ services:
       - JENKINS_EVA_SCRIPTS=/home/eva_scripts
       - CASC_JENKINS_CONFIG=/home/eva_scripts/casc_configs/jenkins.yaml
       - JENKINS_EVA_PLUGINS=/home/eva_plugins
+      - TRY_UPGRADE_IF_NO_MARKER=true
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client
@@ -36,7 +37,7 @@ services:
     ports:
       - 22:22
     secrets:
-      - jenkins_eva_agent1_pub_key       
+      - jenkins_eva_agent1_pub_key
     depends_on:
       - jenkins
 
@@ -53,7 +54,6 @@ secrets:
     file: '.secrets/jenkins_eva_agent1_key.pub'
   jenkins_eva_agent1_key_password:
     file: '.secrets/jenkins_eva_agent1_key_password'
-
 
 volumes:
   jenkins-data:
