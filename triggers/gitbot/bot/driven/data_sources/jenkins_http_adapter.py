@@ -160,6 +160,9 @@ class JenkinsHttpAdapter(JenkinsRepository):
         if not self.is_jenkins_running():
             raise JenkinsNoConnectionError
 
+        if self.server.get_job_name(job_name) is None:
+            self.scan_organization(job_name)
+
         next_build_number = self.server.get_job_info(job_name)[
             'nextBuildNumber']
 
@@ -171,3 +174,15 @@ class JenkinsHttpAdapter(JenkinsRepository):
                        next_build_number, on_complete,)
         threading.Thread(target=self._wait_for_build,
                          daemon=True, args=method_args).start()
+
+    def scan_organization(self, job_name: str = ""):
+        org_name = job_name.split("/")[0]
+        self._clean_jenkins_server_crumb()
+
+        try:
+            self.server.build_job(name=org_name)
+        except jenkins.EmptyResponseException as ex:
+            logger.warn("Error while scanning organization: {}".format(ex))
+        finally:
+            time.sleep(5)  # wait for 5 seconds while the scan may still be happening
+            # CONSIDER FINDING A WAY OF SCANNING WITHOUT RECEIVING ERRORS
