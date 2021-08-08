@@ -26,14 +26,6 @@ ENV PATH=/root/.local/bin:$PATH
 
 FROM base as continuous-integration
 
-#RUN set -o allexport; source <(cat eva-cicd_env | sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g"); set +o allexport
-
-#RUN (cat eva-cicd_env | sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g") >> /etc/environment
-
-#RUN sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g" -e 's/^/export /' -i eva-cicd_env
-
-#CMD ["bash"]
-
 # Lint
 # pylint, flake8, bandit
 RUN pylint bot
@@ -46,9 +38,10 @@ RUN bandit -c .bandit -r tests
 # vulnerabilities
 # yet to be decided what to use
 
-
-SHELL ["/bin/bash", "-c"]
 # Unit tests
+# the source command requires bash
+# by sourcing that file we are export env vars that are required for the unit tests
+SHELL ["/bin/bash", "-c"]
 RUN source eva-cicd_env; pytest tests/unit/
 SHELL ["/bin/sh", "-c"]
 
