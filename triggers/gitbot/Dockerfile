@@ -29,10 +29,7 @@ FROM base as continuous-integration
 SHELL ["/bin/bash", "-c"]
 RUN set -o allexport; source <(sed -e "s/'/'\\\\''/g; 1s/^/'/; \$s/\$/'/" eva-cicd_env); set +o allexport
 SHELL ["/bin/sh", "-c"]
-RUN echo "$IS_LOCAL"
-RUN echo "$JENKINS_SHUTDOWN_TIMEOUT"
-RUN echo "$GITHUB_ALLOWED_AUTHORS"
-RUN echo "$JENKINS_PASSWORD"
+RUN env
 
 # Lint
 # pylint, flake8, bandit
