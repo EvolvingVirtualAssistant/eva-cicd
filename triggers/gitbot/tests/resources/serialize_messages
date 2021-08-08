@@ -1,0 +1,47 @@
+# IGNORE THIS CODE, THIS IS JUST AN UTILITARY FUNCTION TO "SERIALIZE" DISCORD MESSAGES (NO CARE WAS TAKEN WHILE DOING THIS)
+def build_msg(self, obj, depth):
+        import json
+
+        if depth <= 0:
+            try:
+                json.dumps(obj)
+                return obj
+            except Exception:
+                if isinstance(obj, list):
+                    return []
+                else:
+                    return None
+
+        if isinstance(obj, list):
+            obj_list = []
+
+            for o in obj:
+                obj_list.append(self.build_msg(o, depth - 1))
+            return obj_list
+        else:
+            try:
+                elems = [a for a in dir(obj) if not a.startswith(
+                    '_') and not callable(getattr(obj, a))]
+            except Exception:
+                for a in dir(obj):
+                    if not a.startswith('_') and not callable(getattr(obj, a)):
+                        try:
+                            json.dumps(obj)
+                        except Exception:
+                            return None
+                return obj
+
+        filtered_obj = {}
+        for elem in elems:
+            try:
+                json.dumps(getattr(obj, elem))
+                filtered_obj[elem] = getattr(obj, elem)
+            except Exception:
+                filtered_obj[elem] = self.build_msg(
+                    getattr(obj, elem), depth - 1)
+
+        return filtered_obj
+
+import json
+    with open('triggers/gitbot/tests/resources/sample_message.json', 'r') as f:
+        msg = json.load(f)

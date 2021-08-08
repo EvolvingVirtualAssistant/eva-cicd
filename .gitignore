@@ -3,3 +3,8 @@
 jenkins/plugins/*/target
 .idea
 *.iml
+__pycache__/
+.pytest_cache/
+.vscode
+**/logs/*
+!.gitkeep

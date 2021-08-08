@@ -1,0 +1,12 @@
+pipeline:
+  agent:
+    node:
+      label: 'eva-jenkins-agent-1'
+  stages:
+    - stage: 'CI - Validate, Build, Run Tests'
+      parallel:
+        - stage: 'Gitbot'
+          steps: #lint, check vunerabilities, run tests
+            sh "triggers/jenkins/gitbot_ci.sh"
+        #- stage: 'Client'
+        #  steps:

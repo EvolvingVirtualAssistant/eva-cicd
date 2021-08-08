@@ -1,0 +1,22 @@
+version: 1
+formatters:
+  default:
+    format: '%(asctime)s - [PID: %(process)d] - %(name)s - [%(levelname)s] - [%(pathname)s:%(funcName)s:%(lineno)d] - %(message)s'
+  short:
+    format: '%(asctime)s - [%(levelname)s] - [%(pathname)s:%(funcName)s:%(lineno)d] - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: short
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: default
+    filename: logs/bot.log
+    when: 'midnight'
+    backupCount: 40000000
+root:
+  level: DEBUG
+  handlers: [console, file]
