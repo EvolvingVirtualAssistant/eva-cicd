@@ -3,7 +3,6 @@
 whoami
 #chown jenkins ../../../../../../run/secrets/eva-cicd_env Read-only file system
 cat ../../../../../../run/secrets/eva-cicd_env >triggers/gitbot/eva-cicd_env
-cat ../../../../../../run/secrets/eva-cicd_env
 cat triggers/gitbot/eva-cicd_env
 
 # find and read the appropriate file that was copied to the agent container
