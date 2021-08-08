@@ -38,6 +38,7 @@ services:
       - 22:22
     secrets:
       - jenkins_eva_agent1_pub_key
+      - eva-cicd_env
     depends_on:
       - jenkins
 
@@ -54,6 +55,8 @@ secrets:
     file: '.secrets/jenkins_eva_agent1_key.pub'
   jenkins_eva_agent1_key_password:
     file: '.secrets/jenkins_eva_agent1_key_password'
+  eva-cicd_env:
+    file: '../triggers/gitbot/.env'
 
 volumes:
   jenkins-data:

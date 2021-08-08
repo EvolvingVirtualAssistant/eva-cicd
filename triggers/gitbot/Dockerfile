@@ -25,6 +25,11 @@ ENV PATH=/root/.local/bin:$PATH
 # --------------------------------------------------------------------------------------------------------
 
 FROM base as continuous-integration
+
+RUN set -o allexport; source eva-cicd_env; set +o allexport
+RUN echo "$GITHUB_ALLOWED_AUTHORS"
+RUN echo "$DISCORD_TOKEN"
+
 # Lint
 # pylint, flake8, bandit
 RUN pylint bot
@@ -34,7 +39,7 @@ RUN flake8 --append-config=.flake8 tests
 RUN bandit -c .bandit -r bot
 RUN bandit -c .bandit -r tests
 
-# vunerabilities
+# vulnerabilities
 # yet to be decided what to use
 
 # Unit tests
