@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cp ../../../../../../run/secrets/eva-cicd_env triggers/gitbot/eva-cicd_env
+sudo cp ../../../../../../run/secrets/eva-cicd_env triggers/gitbot/eva-cicd_env
 cat ../../../../../../run/secrets/eva-cicd_env
 cat triggers/gitbot/eva-cicd_env
 
