@@ -12,3 +12,6 @@ DOCKER_BUILDKIT=1 docker build -t eva-cicd-gitbot-debian --target continuous-int
 
 # clean env file
 rm triggers/gitbot/eva-cicd_env
+#grep -v '^#' triggers/gitbot/eva-cicd_env | xargs -d '\n'
+
+#source <(sed -E -n 's/[^#]+/export &/ p' triggers/gitbot/eva-cicd_env)
