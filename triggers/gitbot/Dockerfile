@@ -27,7 +27,9 @@ ENV PATH=/root/.local/bin:$PATH
 FROM base as continuous-integration
 
 RUN ls -la
+SHELL ["/bin/bash", "-c"]
 RUN set -o allexport; pwd; source eva-cicd_env; set +o allexport
+SHELL ["/bin/sh", "-c"]
 RUN echo "$GITHUB_ALLOWED_AUTHORS"
 RUN echo "$DISCORD_TOKEN"
 
