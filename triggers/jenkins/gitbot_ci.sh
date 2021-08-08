@@ -8,4 +8,4 @@ cp ../../../../../../run/secrets/eva-cicd_env triggers/gitbot/eva-cicd_env
 DOCKER_BUILDKIT=1 docker build -t eva-cicd-gitbot-debian --target continuous-integration triggers/gitbot/
 
 # clean env file
-rm ../gitbot/eva-cicd_env
+rm triggers/gitbot/eva-cicd_env
