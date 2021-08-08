@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 cp ../../../../../../run/secrets/eva-cicd_env triggers/gitbot/eva-cicd_env
+cat ../../../../../../run/secrets/eva-cicd_env
+cat triggers/gitbot/eva-cicd_env
 
 # find and read the appropriate file that was copied to the agent container
 # set all of the read env vars only in the context of this file
