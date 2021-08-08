@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-sudo cp ../../../../../../run/secrets/eva-cicd_env triggers/gitbot/eva-cicd_env
+whoami
+#chown jenkins ../../../../../../run/secrets/eva-cicd_env Read-only file system
+cat ../../../../../../run/secrets/eva-cicd_env >triggers/gitbot/eva-cicd_env
 cat ../../../../../../run/secrets/eva-cicd_env
 cat triggers/gitbot/eva-cicd_env
 
