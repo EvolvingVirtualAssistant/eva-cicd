@@ -26,10 +26,13 @@ ENV PATH=/root/.local/bin:$PATH
 
 FROM base as continuous-integration
 
-SHELL ["/bin/bash", "-c"]
-RUN set -o allexport; source <(sed -e "s/'/'\\\\''/g; 1s/^/'/; \$s/\$/'/" eva-cicd_env); set +o allexport
-SHELL ["/bin/sh", "-c"]
-RUN env
+#RUN set -o allexport; source <(cat eva-cicd_env | sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g"); set +o allexport
+
+#RUN (cat eva-cicd_env | sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g") >> /etc/environment
+
+#RUN sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g" -e 's/^/export /' -i eva-cicd_env
+
+#CMD ["bash"]
 
 # Lint
 # pylint, flake8, bandit
@@ -43,8 +46,11 @@ RUN bandit -c .bandit -r tests
 # vulnerabilities
 # yet to be decided what to use
 
+
+SHELL ["/bin/bash", "-c"]
 # Unit tests
-RUN pytest tests/unit/
+RUN source eva-cicd_env; pytest tests/unit/
+SHELL ["/bin/sh", "-c"]
 
 # Integration tests
 # python -m pytest tests/integration/

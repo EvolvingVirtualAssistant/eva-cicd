@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-whoami
-#chown jenkins ../../../../../../run/secrets/eva-cicd_env Read-only file system
-cat ../../../../../../run/secrets/eva-cicd_env >triggers/gitbot/eva-cicd_env
+(cat ../../../../../../run/secrets/eva-cicd_env | sed -e '/^#/d;/^\s*$/d' -e "s/'/'\\\''/g" -e "s/=\(.*\)/='\1'/g" -e 's/^/export /') >triggers/gitbot/eva-cicd_env
 cat triggers/gitbot/eva-cicd_env
 
 # find and read the appropriate file that was copied to the agent container
@@ -12,6 +10,3 @@ DOCKER_BUILDKIT=1 docker build -t eva-cicd-gitbot-debian --target continuous-int
 
 # clean env file
 rm triggers/gitbot/eva-cicd_env
-#grep -v '^#' triggers/gitbot/eva-cicd_env | xargs -d '\n'
-
-#source <(sed -E -n 's/[^#]+/export &/ p' triggers/gitbot/eva-cicd_env)
