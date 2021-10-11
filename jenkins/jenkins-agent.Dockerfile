@@ -22,10 +22,15 @@ RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # adds root to group docker and update iptables to use the legacy alternatives (needed to run docker inside docker) 
 RUN usermod -aG docker root \
+    && usermod -aG docker jenkins \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
     && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy \
     && systemctl enable docker.service \
     && systemctl enable containerd.service
+
+# copy secrets from other eva repositories
+RUN mkdir -p /home/eva/.secrets/
+COPY .secrets/eva-investments /home/eva/.secrets/eva-investments
 
 # copy entrypoint script
 COPY jenkins-agent-entrypoint.sh /usr/local/bin/jenkins-agent-entrypoint.sh
