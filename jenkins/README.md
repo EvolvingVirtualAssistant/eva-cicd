@@ -13,8 +13,15 @@
   # assuming that you are running this command from jenkins folder inside of eva-cicd repository 
   ssh-keygen -f .secrets/jenkins_eva_agent1_key -N password_for_the_key
   ``` 
-All of these secrets will then have to be injected into the docker containers. There are multiple ways of achieving that, for now we are using the *docker-compose.yml* file to have all of these secrets defined there.   
+All of these secrets will then have to be injected into the docker containers. There are multiple ways of achieving that, for now we are using the *docker-compose.yml* file to have all of these secrets defined there.
 
+## Running gitbot
+One should run gitbot since gitbot will also start jenkins based on PRs notifications that git hook picks up.
+### Start
+```sh
+cd triggers/gitbot
+python -m bot # Run bot module which start a gitbot in discord
+```  
 ## Running jenkins
 
 ### Build
